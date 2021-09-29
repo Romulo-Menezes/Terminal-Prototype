@@ -1,4 +1,5 @@
 # Terminal Prototype
+> Ainda está em desenvolvimento...
 
 Terminal Prototype é um programa em C que tem uma funcionalidade tipo de um terminal linux.
 
