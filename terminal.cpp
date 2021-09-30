@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include<stdio.h>
 #include<stdlib.h>
 #include<unistd.h>
@@ -10,7 +12,7 @@
 #define ANSI_RESET "\033[0;0m"
 #define ANSI_VERMELHO_CLARO "\033[1;91m"
 
-#define MAX_STRING 500
+#define MAX_STRING 256
 
 /*Inicia o terminal com uma mensagem de boas vindas*/
 void IniciarTerminal(){
@@ -34,6 +36,44 @@ void ImprimirDir(char *user)
     printf("$ ");
 }
 
+void ListaDeComandos(){
+    printf("Lista de comandos:\nexit \nhelp \ncd \n");
+}
+
+void ExecutarComando(char *cmd){
+    int numeroDeComandos = 3, varSwitch = -1;
+    char *listaDeComandos[numeroDeComandos];
+
+    listaDeComandos[0] = "exit";
+    listaDeComandos[1] = "help";
+    listaDeComandos[2] = "cd";
+
+    for(int i = 0; i < numeroDeComandos; i++){
+        if(strcmp(cmd, listaDeComandos[i]) == 0){
+            varSwitch = i + 1;
+            break;
+        }
+    }
+
+    switch (varSwitch)
+    {
+    case 1:
+        printf("Até logo!\n");
+        exit(0);
+    case 2:
+        ListaDeComandos();
+        break;
+    case 3:
+        printf("Não implementado ainda!\n");
+        break;
+
+    default:
+        printf(ANSI_VERMELHO_CLARO "COMANDO INVALIDO!\n" ANSI_RESET);
+        break;
+    }
+
+    
+}
 
 int main(){
 
@@ -46,10 +86,13 @@ int main(){
     while (1)
     {
         ImprimirDir(username);
-        scanf("%s", strDeEntrada);
+        std::cin.getline(strDeEntrada, MAX_STRING);
 
-        if(strcmp(strDeEntrada, cmd) == 0)
-            exit(0);
+        if(strlen(strDeEntrada) == 0){
+            continue;
+        }
+
+        ExecutarComando(strDeEntrada);            
 
     }
     

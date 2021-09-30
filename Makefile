@@ -1,3 +1,3 @@
 all:
-	gcc terminal.c -o terminal.out
+	g++ terminal.cpp -o terminal.out
 	./terminal.out
