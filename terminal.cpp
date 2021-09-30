@@ -23,7 +23,7 @@ void IniciarTerminal(){
 }
 
 /*Imprime o diretorio no terminal*/
-void ImprimirDir(char *user)
+void ImprimirDir(std::string user)
 {
     char cwd[MAX_STRING];
     
@@ -37,7 +37,7 @@ void ListaDeComandos(){
     printf("Lista de comandos:\nexit \nhelp \ncd \nclean \n");
 }
 
-void ExecutarComando(char *cmd){
+void ExecutarComando(std::string cmd){
     int numeroDeComandos = 4, varSwitch = -1;
     std::string *listaDeComandos = new std::string[numeroDeComandos];
 
@@ -76,22 +76,21 @@ void ExecutarComando(char *cmd){
 
 int main(){
 
-    char strDeEntrada[MAX_STRING], cmd[] = "sair";
-    char *username;
-    username = getenv("USER"); 
+    std::string entrada, cmd = "sair";
+    std::string username = getenv("USER"); 
 
     IniciarTerminal();
 
     while (1)
     {
         ImprimirDir(username);
-        std::cin.getline(strDeEntrada, MAX_STRING);
+        std::cin >> entrada;
 
-        if(strlen(strDeEntrada) == 0){
+        if(entrada.length() == 0){
             continue;
         }
 
-        ExecutarComando(strDeEntrada);            
+        ExecutarComando(entrada);
 
     }
     
