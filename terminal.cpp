@@ -72,6 +72,16 @@ void ExecutarComando(std::string cmd){
     }    
 }
 
+int isBlank(std::string str) {
+    const char * cstr = str.c_str();
+    
+    for(int i = 0; i < str.length(); i++) {
+        if (cstr[i] != ' ')
+           return 0;
+    }
+    return 1;
+}
+
 int main(){
 
     std::string entrada, cmd = "sair";
@@ -82,9 +92,9 @@ int main(){
     while (1)
     {
         ImprimirDir(username);
-        std::cin >> entrada;
+        getline(std::cin, entrada);
 
-        if(entrada.length() == 0){        //ficou inutil com string 
+        if(entrada.empty() || isBlank(entrada)){        //ficou inutil com string 
             continue;
         }
 
