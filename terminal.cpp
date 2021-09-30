@@ -1,23 +1,21 @@
 #include <iostream>
 #include <cstring>
+
 #include <unistd.h>
+#include <string.h>
+
+#include "cores.hpp"
 
 #define clean() printf("\033[H\033[J")
-
-#define VERDE_CLARO "\033[1;92m"
-#define AZUL_CLARO "\033[1;94m"
-#define RESET "\033[0;0m"
-#define VERMELHO_CLARO "\033[1;91m"
-
-#define MAX_STRING 256
+#define MAX_STRING 512
 
 /*Inicia o terminal com uma mensagem de boas vindas*/
 void IniciarTerminal(){
     clean();
-    std::cout << VERMELHO_CLARO << "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=" << std::endl << std::endl;
+    std::cout << BIRED "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=" << std::endl << std::endl;
     std::cout << "Olá, seja bem vindo ao Terminal Prototype!" << std::endl;
     std::cout << "      Use por sua conta e risco :D" << std::endl << std::endl;
-    std::cout << "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=" << RESET << std::endl << std::endl;
+    std::cout << "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=" COLOR_RESET << std::endl << std::endl;
     sleep(0.5);
     //clean();
 }
@@ -28,8 +26,8 @@ void ImprimirDir(std::string user)
     char cwd[MAX_STRING];
     
     getcwd(cwd, sizeof(cwd));
-    std::cout << VERDE_CLARO << user << ":" << RESET;
-    std::cout << AZUL_CLARO << cwd << RESET;
+    std::cout << BIGREEN << user << "@Terminal-Prototype" COLOR_RESET ":";
+    std::cout << BIBLUE << cwd << COLOR_RESET;
     std::cout << "$ ";
 }
 
@@ -69,7 +67,7 @@ void ExecutarComando(std::string cmd){
         break;
 
     default:
-        std::cout << VERMELHO_CLARO << "COMANDO INVALIDO!" << RESET << std::endl;
+        std::cout << URED << "COMANDO INVALIDO!" << COLOR_RESET << std::endl;
         break;
     }    
 }
@@ -86,7 +84,7 @@ int main(){
         ImprimirDir(username);
         std::cin >> entrada;
 
-        if(entrada.length() == 0){
+        if(entrada.length() == 0){        //ficou inutil com string 
             continue;
         }
 
