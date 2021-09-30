@@ -1,9 +1,6 @@
 #include <iostream>
-
-#include<stdio.h>
-#include<stdlib.h>
-#include<unistd.h>
-#include<string.h>
+#include <cstring>
+#include <unistd.h>
 
 #define clean() printf("\033[H\033[J")
 
@@ -17,11 +14,11 @@
 /*Inicia o terminal com uma mensagem de boas vindas*/
 void IniciarTerminal(){
     clean();
-    printf( VERMELHO_CLARO "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n\n");
-    printf("Olá, seja bem vindo ao Terminal Prototype!\n");
-    printf("      Use por sua conta e risco :D\n\n");
-    printf("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n\n" RESET );
-    sleep(2);
+    std::cout << VERMELHO_CLARO << "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=" << std::endl << std::endl;
+    std::cout << "Olá, seja bem vindo ao Terminal Prototype!" << std::endl;
+    std::cout << "      Use por sua conta e risco :D" << std::endl << std::endl;
+    std::cout << "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=" << RESET << std::endl << std::endl;
+    sleep(0.5);
     //clean();
 }
 
@@ -31,9 +28,9 @@ void ImprimirDir(char *user)
     char cwd[MAX_STRING];
     
     getcwd(cwd, sizeof(cwd));
-    printf( VERDE_CLARO "%s:"RESET, user);
-    printf( AZUL_CLARO "%s" RESET, cwd );
-    printf("$ ");
+    std::cout << VERDE_CLARO << user << ":" << RESET;
+    std::cout << AZUL_CLARO << cwd << RESET;
+    std::cout << "$ ";
 }
 
 void ListaDeComandos(){
@@ -42,7 +39,7 @@ void ListaDeComandos(){
 
 void ExecutarComando(char *cmd){
     int numeroDeComandos = 4, varSwitch = -1;
-    char *listaDeComandos[numeroDeComandos];
+    std::string *listaDeComandos = new std::string[numeroDeComandos];
 
     listaDeComandos[0] = "exit";
     listaDeComandos[1] = "help";
@@ -50,7 +47,7 @@ void ExecutarComando(char *cmd){
     listaDeComandos[3] = "clean";
 
     for(int i = 0; i < numeroDeComandos; i++){
-        if(strcmp(cmd, listaDeComandos[i]) == 0){
+        if(listaDeComandos[i].compare(cmd) == 0){
             varSwitch = i + 1;
             break;
         }
@@ -59,24 +56,22 @@ void ExecutarComando(char *cmd){
     switch (varSwitch)
     {
     case 1:
-        printf("Até logo!\n");
+        std::cout << "Até logo!" << std::endl;
         exit(0);
     case 2:
         ListaDeComandos();
         break;
     case 3:
-        printf("Não implementado ainda!\n");
+        std::cout << "Não implementado ainda!" << std::endl;
         break;
     case 4:
         clean();
         break;
 
     default:
-        printf(VERMELHO_CLARO "COMANDO INVALIDO!\n" RESET);
+        std::cout << VERMELHO_CLARO << "COMANDO INVALIDO!" << RESET << std::endl;
         break;
-    }
-
-    
+    }    
 }
 
 int main(){
