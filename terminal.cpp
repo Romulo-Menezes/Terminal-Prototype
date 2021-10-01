@@ -18,7 +18,7 @@ void iniciarTerminal();
 
 void ImprimirDir(string);
 
-bool executarComandoEmbutido(string);
+bool executarComandoEmbutido(string, char **);
 
 int isBlank(string);
 
@@ -110,8 +110,8 @@ int limparTerminal(char **) {
     return 0;
 }
 
-int mudarDiretorio(char **) {
-    cout << "Não implementado ainda!" << endl;
+int mudarDiretorio(char ** args) {
+    chdir(args[1]);
     return 0;
 }
 
@@ -123,24 +123,23 @@ void inicializarComandos() {
 }
 
 void executarComando(string entrada) {
-    if(!executarComandoEmbutido(entrada)) {
-        vector<string> raw_text = split(entrada, " ");
-        vector<char*> pointerVec(raw_text.size() + 1);
-        for(unsigned i = 0; i < raw_text.size(); ++i) {
-            pointerVec[i] = raw_text[i].data();
-        }
-        pointerVec[raw_text.size()] = NULL;
-        char** args = pointerVec.data();
-        executarComandoDoSistema(raw_text[0], args);
+    vector<string> valores_split_string = split(entrada, " ");
+    vector<char*> valores_split_char_pointer(valores_split_string.size() + 1);
+    for(unsigned i = 0; i < valores_split_string.size(); ++i) {
+        valores_split_char_pointer[i] = valores_split_string[i].data();
+    }
+    valores_split_char_pointer[valores_split_string.size()] = NULL;
+    char** argumentos = valores_split_char_pointer.data();
+    if(!executarComandoEmbutido(valores_split_string[0], argumentos)) {
+        executarComandoDoSistema(valores_split_string[0], argumentos);
     }
 }
 
-bool executarComandoEmbutido(string cmd) {
-    if (comandos.find(cmd) != comandos.end()) {
-        comandos.at(cmd)(nullptr);
+bool executarComandoEmbutido(string comando, char ** argumentos) {
+    if (comandos.find(comando) != comandos.end()) {
+        comandos.at(comando)(argumentos);
         return true;
     } else {
-        // cout << URED << "COMANDO INVALIDO!" << COLOR_RESET << endl;
         return false;
     }
 }
