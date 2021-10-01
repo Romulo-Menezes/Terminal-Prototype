@@ -38,17 +38,14 @@ int main() {
     inicializarComandos();
     iniciarTerminal();
 
-    while (1)
-    {
+    while (1) {
         ImprimirDir(username);
         getline(cin, entrada);
 
         if(entrada.empty() || isBlank(entrada)){        //ficou inutil com string 
             continue;
         }
-
         executarComando(entrada);
-
     }
     
     return 0;
@@ -115,8 +112,8 @@ int mudarDiretorio(char **) {
 }
 
 void inicializarComandos() {
-comandos.insert(pair<string, function<int(char **)>>("exit", &exitTerminal));
-comandos.insert(pair<string, function<int(char **)>>("help", &listarComandos));
-comandos.insert(pair<string, function<int(char **)>>("cd", &mudarDiretorio));
-comandos.insert(pair<string, function<int(char **)>>("clean", &limparTerminal));
+    comandos.insert(pair<string, function<int(char **)>>("exit", &exitTerminal));
+    comandos.insert(pair<string, function<int(char **)>>("help", &listarComandos));
+    comandos.insert(pair<string, function<int(char **)>>("cd", &mudarDiretorio));
+    comandos.insert(pair<string, function<int(char **)>>("clean", &limparTerminal));
 }
