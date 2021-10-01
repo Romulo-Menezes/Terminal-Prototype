@@ -1,78 +1,100 @@
 #include <iostream>
 #include <cstring>
+#include <map>
+#include <functional>
 
 #include <unistd.h>
 #include <string.h>
 
 #include "cores.hpp"
-
-#define clean() printf("\033[H\033[J")
 #define MAX_STRING 512
 
+using namespace std;
+
+void iniciarTerminal();
+
+void ImprimirDir(string);
+
+void executarComando(string);
+
+int isBlank(string);
+
+int listarComandos(char** args);
+
+int exitTerminal(char**);
+
+int mudarDiretorio(char **);
+
+int limparTerminal(char **);
+
+void inicializarComandos();
+
+map<string, function<int(char **)>> comandos;
+
+int main() {
+    string entrada, cmd = "exiterminal";
+    string username = getenv("USER");
+
+    inicializarComandos();
+    iniciarTerminal();
+
+    while (1)
+    {
+        ImprimirDir(username);
+        getline(cin, entrada);
+
+        if(entrada.empty() || isBlank(entrada)){        //ficou inutil com string 
+            continue;
+        }
+
+        executarComando(entrada);
+
+    }
+    
+    return 0;
+}
+
 /*Inicia o terminal com uma mensagem de boas vindas*/
-void IniciarTerminal(){
-    clean();
-    std::cout << BIRED "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=" << std::endl << std::endl;
-    std::cout << "Olá, seja bem vindo ao Terminal Prototype!" << std::endl;
-    std::cout << "      Use por sua conta e risco :D" << std::endl << std::endl;
-    std::cout << "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=" COLOR_RESET << std::endl << std::endl;
+void iniciarTerminal(){
+    limparTerminal(NULL);
+    cout << BIRED "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=" << endl << endl;
+    cout << "Olá, seja bem vindo ao Terminal Prototype!" << endl;
+    cout << "      Use por sua conta e risco :D" << endl << endl;
+    cout << "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=" COLOR_RESET << endl << endl;
     sleep(0.5);
-    //clean();
+    //limparTerminal();
 }
 
 /*Imprime o diretorio no terminal*/
-void ImprimirDir(std::string user)
-{
+void ImprimirDir(string user) {
     char cwd[MAX_STRING];
     
     getcwd(cwd, sizeof(cwd));
-    std::cout << BIGREEN << user << "@Terminal-Prototype" COLOR_RESET ":";
-    std::cout << BIBLUE << cwd << COLOR_RESET;
-    std::cout << "$ ";
+    cout << BIGREEN << user << "@Terminal-Prototype" COLOR_RESET ":";
+    cout << BIBLUE << cwd << COLOR_RESET;
+    cout << "$ ";
 }
 
-void ListaDeComandos(){
-    printf("Lista de comandos:\nexit \nhelp \ncd \nclean \n");
+int listarComandos(char** args) {
+    printf("Lista de comandos:\nexit \nhelp \ncd \nlimparTerminal \n");
+    return 0;
 }
 
-void ExecutarComando(std::string cmd){
-    int numeroDeComandos = 4, varSwitch = -1;
-    std::string *listaDeComandos = new std::string[numeroDeComandos];
-
-    listaDeComandos[0] = "exit";
-    listaDeComandos[1] = "help";
-    listaDeComandos[2] = "cd";
-    listaDeComandos[3] = "clean";
-
-    for(int i = 0; i < numeroDeComandos; i++){
-        if(listaDeComandos[i].compare(cmd) == 0){
-            varSwitch = i + 1;
-            break;
-        }
+void executarComando(string cmd) {
+    if (comandos.find(cmd) != comandos.end()) {
+        comandos.at(cmd)(nullptr);
+    } else {
+        cout << URED << "COMANDO INVALIDO!" << COLOR_RESET << endl;
     }
-
-    switch (varSwitch)
-    {
-    case 1:
-        std::cout << "Até logo!" << std::endl;
-        exit(0);
-    case 2:
-        ListaDeComandos();
-        break;
-    case 3:
-        std::cout << "Não implementado ainda!" << std::endl;
-        break;
-    case 4:
-        clean();
-        break;
-
-    default:
-        std::cout << URED << "COMANDO INVALIDO!" << COLOR_RESET << std::endl;
-        break;
-    }    
 }
 
-int isBlank(std::string str) {
+int exitTerminal(char** args) {
+    cout << "Até logo!" << endl;
+    exit(0);
+}
+
+
+int isBlank(string str) {
     const char * cstr = str.c_str();
     
     for(int i = 0; i < str.length(); i++) {
@@ -82,25 +104,19 @@ int isBlank(std::string str) {
     return 1;
 }
 
-int main(){
-
-    std::string entrada, cmd = "sair";
-    std::string username = getenv("USER"); 
-
-    IniciarTerminal();
-
-    while (1)
-    {
-        ImprimirDir(username);
-        getline(std::cin, entrada);
-
-        if(entrada.empty() || isBlank(entrada)){        //ficou inutil com string 
-            continue;
-        }
-
-        ExecutarComando(entrada);
-
-    }
-    
+int limparTerminal(char **) {
+    printf("\033[H\033[J");
     return 0;
+}
+
+int mudarDiretorio(char **) {
+    cout << "Não implementado ainda!" << endl;
+    return 0;
+}
+
+void inicializarComandos() {
+comandos.insert(pair<string, function<int(char **)>>("exit", &exitTerminal));
+comandos.insert(pair<string, function<int(char **)>>("help", &listarComandos));
+comandos.insert(pair<string, function<int(char **)>>("cd", &mudarDiretorio));
+comandos.insert(pair<string, function<int(char **)>>("clean", &limparTerminal));
 }
