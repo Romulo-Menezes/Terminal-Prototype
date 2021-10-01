@@ -1,10 +1,13 @@
 #include <iostream>
+#include <sstream>
 #include <cstring>
 #include <map>
 #include <functional>
+#include <vector>
 
 #include <unistd.h>
 #include <string.h>
+#include <sys/wait.h>
 
 #include "cores.hpp"
 #define MAX_STRING 512
@@ -15,7 +18,7 @@ void iniciarTerminal();
 
 void ImprimirDir(string);
 
-void executarComando(string);
+bool executarComandoEmbutido(string);
 
 int isBlank(string);
 
@@ -30,6 +33,12 @@ int limparTerminal(char **);
 void inicializarComandos();
 
 map<string, function<int(char **)>> comandos;
+
+void executarComandoDoSistema(string, char **);
+
+void executarComando(string);
+
+vector<string> split(const string&, const string&) ;
 
 int main() {
     string entrada, cmd = "exiterminal";
@@ -73,16 +82,11 @@ void ImprimirDir(string user) {
 }
 
 int listarComandos(char** args) {
-    printf("Lista de comandos:\nexit \nhelp \ncd \nlimparTerminal \n");
-    return 0;
-}
-
-void executarComando(string cmd) {
-    if (comandos.find(cmd) != comandos.end()) {
-        comandos.at(cmd)(nullptr);
-    } else {
-        cout << URED << "COMANDO INVALIDO!" << COLOR_RESET << endl;
+    cout << "Lista de comandos:" << endl;
+    for(map<string, function<int(char **)>>::iterator entry = comandos.begin(); entry != comandos.end(); ++entry) {
+        cout << entry->first << endl;
     }
+    return 0;
 }
 
 int exitTerminal(char** args) {
@@ -116,4 +120,60 @@ void inicializarComandos() {
     comandos.insert(pair<string, function<int(char **)>>("help", &listarComandos));
     comandos.insert(pair<string, function<int(char **)>>("cd", &mudarDiretorio));
     comandos.insert(pair<string, function<int(char **)>>("clean", &limparTerminal));
+}
+
+void executarComando(string entrada) {
+    if(!executarComandoEmbutido(entrada)) {
+        vector<string> raw_text = split(entrada, " ");
+        vector<char*> pointerVec(raw_text.size() + 1);
+        for(unsigned i = 0; i < raw_text.size(); ++i) {
+            pointerVec[i] = raw_text[i].data();
+        }
+        pointerVec[raw_text.size()] = NULL;
+        char** args = pointerVec.data();
+        executarComandoDoSistema(raw_text[0], args);
+    }
+}
+
+bool executarComandoEmbutido(string cmd) {
+    if (comandos.find(cmd) != comandos.end()) {
+        comandos.at(cmd)(nullptr);
+        return true;
+    } else {
+        // cout << URED << "COMANDO INVALIDO!" << COLOR_RESET << endl;
+        return false;
+    }
+}
+
+void executarComandoDoSistema(string comando, char ** argumentos){
+    pid_t pid = fork();
+
+    if (pid == -1) {
+        printf("\nFalha na criação de um processo filho.");
+        exit(1);
+    } else if (pid == 0) {
+        if (execvp(comando.c_str(), argumentos) < 0) {
+            printf("\nXiii, consigo executar esse comando ai não...\n");
+        }
+
+        exit(0);
+    } else {
+        wait(NULL);
+        return;
+    }
+}
+
+vector<string> split(const string& str, const string& delim) {
+    vector<string> tokens;
+    size_t prev = 0, pos = 0;
+    do
+    {
+        pos = str.find(delim, prev);
+        if (pos == string::npos) pos = str.length();
+        string token = str.substr(prev, pos-prev);
+        if (!token.empty()) tokens.push_back(token);
+        prev = pos + delim.length();
+    }
+    while (pos < str.length() && prev < str.length());
+    return tokens;
 }
