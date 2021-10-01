@@ -191,10 +191,11 @@ int main(){
         if (pegarEntrada(entrada))
             continue;
 
-        /* Pega o processo, vai retornar 0 se não tiver nenhum comando ou for um comando embutido, 1 se for um comando simples e 2 se incluir uma conexão */
+        /* Analisa a entrada para descobrir se é um comando embutido ou uma chamada de outro programa, se for um comando embutido 
+         * ele vai executar o comando e retornar 0. Se for um comando simples ele irá retornar 1 */
         execFlag = analisarEntrada(entrada, listaDePalavras);
 
-        /* Executa os processos */
+        /* Executa os comandos simples (programa externo) que não contenham a " | " */
         if (execFlag == 1)
             executarComandos(listaDePalavras);
     }
