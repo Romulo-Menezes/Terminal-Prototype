@@ -51,7 +51,7 @@ int main() {
         ImprimirDir(username);
         getline(cin, entrada);
 
-        if(entrada.empty() || isBlank(entrada)){        //ficou inutil com string 
+        if(entrada.empty() || isBlank(entrada)){ 
             continue;
         }
         executarComando(entrada);
