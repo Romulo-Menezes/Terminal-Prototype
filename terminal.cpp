@@ -1,104 +1,178 @@
 #include <iostream>
+#include <sstream>
+#include <cstring>
+#include <map>
+#include <functional>
+#include <vector>
 
-#include<stdio.h>
-#include<stdlib.h>
-#include<unistd.h>
-#include<string.h>
+#include <unistd.h>
+#include <string.h>
+#include <sys/wait.h>
 
-#define clean() printf("\033[H\033[J")
+#include "cores.hpp"
+#define MAX_STRING 512
 
-#define VERDE_CLARO "\033[1;92m"
-#define AZUL_CLARO "\033[1;94m"
-#define RESET "\033[0;0m"
-#define VERMELHO_CLARO "\033[1;91m"
+using namespace std;
 
-#define MAX_STRING 256
+void iniciarTerminal();
 
-/*Inicia o terminal com uma mensagem de boas vindas*/
-void IniciarTerminal(){
-    clean();
-    printf( VERMELHO_CLARO "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n\n");
-    printf("Olá, seja bem vindo ao Terminal Prototype!\n");
-    printf("      Use por sua conta e risco :D\n\n");
-    printf("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n\n" RESET );
-    sleep(2);
-    //clean();
-}
+void ImprimirDir(string);
 
-/*Imprime o diretorio no terminal*/
-void ImprimirDir(char *user)
-{
-    char cwd[MAX_STRING];
-    
-    getcwd(cwd, sizeof(cwd));
-    printf( VERDE_CLARO "%s:"RESET, user);
-    printf( AZUL_CLARO "%s" RESET, cwd );
-    printf("$ ");
-}
+bool executarComandoEmbutido(string, char **);
 
-void ListaDeComandos(){
-    printf("Lista de comandos:\nexit \nhelp \ncd \nclean \n");
-}
+int isBlank(string);
 
-void ExecutarComando(char *cmd){
-    int numeroDeComandos = 4, varSwitch = -1;
-    char *listaDeComandos[numeroDeComandos];
+int listarComandos(char** args);
 
-    listaDeComandos[0] = "exit";
-    listaDeComandos[1] = "help";
-    listaDeComandos[2] = "cd";
-    listaDeComandos[3] = "clean";
+int exitTerminal(char**);
 
-    for(int i = 0; i < numeroDeComandos; i++){
-        if(strcmp(cmd, listaDeComandos[i]) == 0){
-            varSwitch = i + 1;
-            break;
-        }
-    }
+int mudarDiretorio(char **);
 
-    switch (varSwitch)
-    {
-    case 1:
-        printf("Até logo!\n");
-        exit(0);
-    case 2:
-        ListaDeComandos();
-        break;
-    case 3:
-        printf("Não implementado ainda!\n");
-        break;
-    case 4:
-        clean();
-        break;
+int limparTerminal(char **);
 
-    default:
-        printf(VERMELHO_CLARO "COMANDO INVALIDO!\n" RESET);
-        break;
-    }
+void inicializarComandos();
 
-    
-}
+map<string, function<int(char **)>> comandos;
 
-int main(){
+void executarComandoDoSistema(string, char **);
 
-    char strDeEntrada[MAX_STRING], cmd[] = "sair";
-    char *username;
-    username = getenv("USER"); 
+void executarComando(string);
 
-    IniciarTerminal();
+vector<string> split(const string&, const string&) ;
 
-    while (1)
-    {
+int main() {
+    string entrada, cmd = "exiterminal";
+    string username = getenv("USER");
+
+    inicializarComandos();
+    iniciarTerminal();
+
+    while (1) {
         ImprimirDir(username);
-        std::cin.getline(strDeEntrada, MAX_STRING);
+        getline(cin, entrada);
 
-        if(strlen(strDeEntrada) == 0){
+        if(entrada.empty() || isBlank(entrada)){ 
             continue;
         }
-
-        ExecutarComando(strDeEntrada);            
-
+        executarComando(entrada);
     }
     
     return 0;
+}
+
+/*Inicia o terminal com uma mensagem de boas vindas*/
+void iniciarTerminal(){
+    limparTerminal(NULL);
+    cout << BIRED "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=" << endl << endl;
+    cout << "Olá, seja bem vindo ao Terminal Prototype!" << endl;
+    cout << "      Use por sua conta e risco :D" << endl << endl;
+    cout << "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=" COLOR_RESET << endl << endl;
+    sleep(0.5);
+    //limparTerminal();
+}
+
+/*Imprime o diretorio no terminal*/
+void ImprimirDir(string user) {
+    char cwd[MAX_STRING];
+    
+    getcwd(cwd, sizeof(cwd));
+    cout << BIGREEN << user << "@Terminal-Prototype" COLOR_RESET ":";
+    cout << BIBLUE << cwd << COLOR_RESET;
+    cout << "$ ";
+}
+
+int listarComandos(char** args) {
+    cout << "Lista de comandos:" << endl;
+    for(map<string, function<int(char **)>>::iterator entry = comandos.begin(); entry != comandos.end(); ++entry) {
+        cout << entry->first << endl;
+    }
+    return 0;
+}
+
+int exitTerminal(char** args) {
+    cout << "Até logo!" << endl;
+    exit(0);
+}
+
+
+int isBlank(string str) {
+    const char * cstr = str.c_str();
+    
+    for(int i = 0; i < str.length(); i++) {
+        if (cstr[i] != ' ')
+           return 0;
+    }
+    return 1;
+}
+
+int limparTerminal(char **) {
+    printf("\033[H\033[J");
+    return 0;
+}
+
+int mudarDiretorio(char ** args) {
+    chdir(args[1]);
+    return 0;
+}
+
+void inicializarComandos() {
+    comandos.insert(pair<string, function<int(char **)>>("exit", &exitTerminal));
+    comandos.insert(pair<string, function<int(char **)>>("help", &listarComandos));
+    comandos.insert(pair<string, function<int(char **)>>("cd", &mudarDiretorio));
+    comandos.insert(pair<string, function<int(char **)>>("clean", &limparTerminal));
+}
+
+void executarComando(string entrada) {
+    vector<string> valores_split_string = split(entrada, " ");
+    vector<char*> valores_split_char_pointer(valores_split_string.size() + 1);
+    for(unsigned i = 0; i < valores_split_string.size(); ++i) {
+        valores_split_char_pointer[i] = valores_split_string[i].data();
+    }
+    valores_split_char_pointer[valores_split_string.size()] = NULL;
+    char** argumentos = valores_split_char_pointer.data();
+    if(!executarComandoEmbutido(valores_split_string[0], argumentos)) {
+        executarComandoDoSistema(valores_split_string[0], argumentos);
+    }
+}
+
+bool executarComandoEmbutido(string comando, char ** argumentos) {
+    if (comandos.find(comando) != comandos.end()) {
+        comandos.at(comando)(argumentos);
+        return true;
+    } else {
+        return false;
+    }
+}
+
+void executarComandoDoSistema(string comando, char ** argumentos){
+    pid_t pid = fork();
+
+    if (pid == -1) {
+        printf("\nFalha na criação de um processo filho.");
+        exit(1);
+    } else if (pid == 0) {
+        if (execvp(comando.c_str(), argumentos) < 0) {
+            printf("\nXiii, consigo executar esse comando ai não...\n");
+        }
+
+        exit(0);
+    } else {
+        wait(NULL);
+        return;
+    }
+}
+
+vector<string> split(const string& str, const string& delim) {
+    vector<string> tokens;
+    size_t prev = 0, pos = 0;
+    do
+    {
+        pos = str.find(delim, prev);
+        if (pos == string::npos) pos = str.length();
+        string token = str.substr(prev, pos-prev);
+        if (!token.empty()) tokens.push_back(token);
+        prev = pos + delim.length();
+    }
+    while (pos < str.length() && prev < str.length());
+    return tokens;
 }
